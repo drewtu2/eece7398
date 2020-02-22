@@ -1,0 +1,6 @@
+*.tar
+__pycache__
+venv
+*.swp
+**data.*
+**/runs/
