@@ -10,7 +10,7 @@ pip3 install --upgrade setuptools
 pip3 install wheel
 pip3 install torch torchvision
 
-git clone https://github.com/pytorch/vision
+#git clone https://github.com/pytorch/vision
 cd vision
 
 sudo apt-get install -y libavcodec-dev libavformat-dev libswscale-dev libjpeg-dev zlib1g-dev
