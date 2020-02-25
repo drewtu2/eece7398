@@ -24,6 +24,7 @@ train_loader = load_training_data()
 test_loader = load_testing_data()
 model_directory = "./model"
 model_save_file = "cifar10_cnn"
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def get_model_save_file():
     save_file = "{}/{}.pt".format(model_directory, model_save_file)
@@ -36,10 +37,13 @@ def train(model, num_epoch, continue_training):
     max_accuracy = 0
     start_epoch = 0
 
+    model.to(device)
+
     # Load if we're reloading. 
     if continue_training:
         _, _, start_epoch = load_checkpoint(model, optimizer, get_model_save_file())
         print("Starting off from epoch: {}".format(start_epoch))
+        num_epoch += start_epoch
 
     for epoch in range(start_epoch, num_epoch):
         print("\n\n********************************")
@@ -47,13 +51,15 @@ def train(model, num_epoch, continue_training):
         print("********************************")
         
         epoch_cost = 0.0
-        for step, (inputs, labels) in enumerate(train_loader):
+        for step, data in enumerate(train_loader):
+            inputs, labels = data[0].to(device), data[1].to(device)
             model.train()                       # set the model in training mode
-            outputs = model(inputs)
-            loss = loss_func(outputs, labels)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            
+            outputs = model(inputs)                 # 1. Predict
+            loss = loss_func(outputs, labels)       # 2. Loss
+            optimizer.zero_grad()                   # 3. Zero gradient
+            loss.backward()                         # 4. Back Prop
+            optimizer.step()                        # 5. Advance
     
             running_loss += loss.item()
             epoch_cost += loss.item()
@@ -81,13 +87,14 @@ def train(model, num_epoch, continue_training):
 
 def test(model):
     model.eval()  # switch the model to evaluation mode
-    
+    model.to(device)
     running_loss = 0.0
     correct = 0
     total = 0
 
     for data in test_loader:
-        images, labels = data
+        #images, labels = data
+        images, labels = data[0].to(device), data[1].to(device)
         outputs = model(images)
         _, predicted = torch.max(outputs.data, 1)
 
